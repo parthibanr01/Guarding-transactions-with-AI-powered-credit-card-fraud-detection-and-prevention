@@ -1,0 +1,41 @@
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix
+
+# Load dataset
+data = pd.read_csv('creditcard.csv')  # Ensure the file is in the same directory
+
+# Display basic info
+print("Dataset shape:", data.shape)
+print("Fraudulent transactions:", data['Class'].sum())
+
+# Separate features and labels
+X = data.drop(['Class'], axis=1)
+y = data['Class']
+
+# Train-test split (stratified to maintain class balance)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42
+)
+
+# Model training
+model = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced')
+model.fit(X_train, y_train)
+
+# Evaluate
+y_pred = model.predict(X_test)
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+
+# Simulate a new transaction check
+def check_transaction(transaction_data):
+    prediction = model.predict([transaction_data])
+    return "⚠️ Fraudulent Transaction Detected!" if prediction[0] == 1 else "✅ Transaction is Legitimate."
+
+# Example usage: simulate a new transaction
+# You should replace the below values with actual scaled feature values from a real pipeline
+example_transaction = X_test.iloc[5].values
+result = check_transaction(example_transaction)
+print("\nTransaction Check Result:", result)
